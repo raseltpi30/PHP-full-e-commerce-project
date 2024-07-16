@@ -11,23 +11,23 @@ if(!isset($_SESSION['user'])){
     </script>
     <?php
 }
-if(isset($_POST['Mode_quantity'])){
-    foreach ($result as $key=> $row){
-        if($row['product_name'] == $_POST['product_name']){
-            $data_quantity = getProductName('quantity',$row['product_id']);  
-            if($data_quantity < $_POST['Mode_quantity']){
-                $error = $row['product_name']." Out Of Stock";
-            }
-            else{
-                $data_price = $row['price'];
-                $total_price = $data_price * $_POST['Mode_quantity'];
-                $result[$key]['quantity']=$_POST['Mode_quantity'];
-                $stm = $connection->prepare("UPDATE cart SET quantity=?,total_price=? WHERE product_id=?");
-                $stm->execute(array($result[$key]['quantity'],$total_price,$row['product_id'])); 
-            }          
-        }           
-    }
-}
+// if(isset($_POST['Mode_quantity'])){
+//     foreach ($result as $key=> $row){
+//         if($row['product_name'] == $_POST['product_name']){
+//             $data_quantity = getProductName('quantity',$row['product_id']);  
+//             if($data_quantity < $_POST['Mode_quantity']){
+//                 $error = $row['product_name']." Out Of Stock";
+//             }
+//             else{
+//                 $data_price = $row['price'];
+//                 $total_price = $data_price * $_POST['Mode_quantity'];
+//                 $result[$key]['quantity']=$_POST['Mode_quantity'];
+//                 $stm = $connection->prepare("UPDATE cart SET quantity=?,total_price=? WHERE product_id=?");
+//                 $stm->execute(array($result[$key]['quantity'],$total_price,$row['product_id'])); 
+//             }          
+//         }           
+//     }
+// }
 if(isset($_POST['order_product'])){
     $success = "Success";   
     echo "<script>
@@ -90,45 +90,55 @@ if($cartCount != 0) : ?>
                         </thead>
                         <tbody>
                             <?php
+                            $gt = 0;
+                            $total_quantity = 0;
                             $result = GetTableData4('cart',$id);
                             foreach ($result as $row) :
                             ?>
-                            <tr>        
+                            <tr class="cartpage">        
                                 <td class="shoping__cart__item">
                                     <img style="width: 100px;height:100px" src="../our_store/uploads/products/<?php echo GetNameByid('products', 'photo', $row['product_id'])  ?>" alt="">
-                                    <h5><?php echo $row['product_name']; ?></h5> <input type="hidden" class="product_id" name="product_id[]" value="<?php echo $row['product_id'] ?>">
+                                    <h5><?php echo $row['product_name']; ?></h5> <input type="hidden" class="product_id" name="product_id" value="<?php echo $row['product_id'] ?>">
                                 </td>
 
                                 <td class="shoping__cart__price">
-                                    <span style="display:inline-block;">$<?php echo $row['price']; ?></span>
-                                    
+                                    <span>$<?php echo $row['price']; ?></span>                                   
                                     <input class="iprice" style="width:50%;border: none; text-align:center" type="hidden" value="<?php echo $row['price']; ?>" readonly>
                                 </td>
                                 <td class="shoping__cart__quantity">
-                                    <div class="change__quantity">
-                                        <form action="" method="POST">
-                                            <input class="iquantity" style="width:25%; text-align:center" value="<?php echo $row['quantity'] ?>" onchange='this.form.submit();' type="number" min="1" max="10" name="Mode_quantity">
-
-                                            <input type="hidden" name="product_name" value="<?php echo $row['product_name']; ?>">
-                                        </form>
+                                    <div class="quantity">
+                                        <input type="hidden" name="" class="product_id" value="<?php echo $row['product_id'] ?>">
+                                        <div class="input-group">
+                                            <div class="decrement-btn changeQuantity" style="cursor: pointer">
+                                                <span class="input-group-text">-</span>
+                                            </div>
+                                                <input type="text" class="qty-input form-control" maxlength="2" max="10" value="<?php echo $row['quantity'] ?>">
+                                            <div class="increment-btn changeQuantity" id="increment" style="cursor: pointer">
+                                                <span class="input-group-text">+</span>
+                                            </div>
+                                        </div>
                                     </div>
-
                                 </td>
                                 <!-- <td class="itotal"></td> -->
                                 <td class="shoping__cart__total">
                                     <div class="item-total d-flex justify-content-center">
                                         <div class="dollar">$</div>
-                                        <div class="itotal"></div>
+                                        <div class="a"><?php echo $row['price'] * $row['quantity']; ?></div>
                                     </div>
-                                </td>
+                                </td> 
                                 <!-- <td class="shoping__cart__total"></td> -->
                                 <td class="shoping__cart__item__close">
                                     <a onclick="return confirm('Are you Sure?');" class="btn btn-sm" href="cart-delete.php?id=<?php echo $row['id']  ?>"><span  style="color:#000" class="icon_close"></span></a>
                                 </td>
+                                <td><?php 
+                                    $gt += $row['total_price'];
+                                    $total_quantity += $row['quantity'];
+                                ?></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                    
                 </div>
             </div>
         </div>
@@ -150,18 +160,12 @@ if($cartCount != 0) : ?>
                     <ul class="d-flex justify-content-between">
                         <div class="cart-total d-felx">
                         <li>Total( <?php 
-                        $result = GetTableData4('cart',$id);
-                        $total_quantity = 0;
-                        foreach ($result as $key => $value){
-                            $total_quantity+= $value['quantity']; 
-                        }
-                        echo $total_quantity;
-                        echo " "."Items";
+                        echo $total_quantity." "."Items";
                         ?> )</li>
                         </div>
                         <div class="total d-flex justify-content-end align-items-start text-bold">
                             <div style="font-weight:700;color:#dd2222;" class="dollar">$</div>
-                            <span style="font-weight:700;color:#dd2222;" id="gtotal"></span>
+                            <span style="font-weight:700;color:#dd2222;" id="gtotal"><?php echo $gt; ?></span>
                         </div>
                     </ul>
                     <form action="" method="POST">                           
@@ -192,21 +196,5 @@ if($cartCount != 0) : ?>
 </section>
 <?php endif; ?>
 <!-- Shoping Cart Section End -->
-<script>
-    gt=0;
-    var iprice = document.getElementsByClassName('iprice');
-    var iquantity = document.getElementsByClassName('iquantity');
-    var itotal = document.getElementsByClassName('itotal');
-    var gtotal = document.getElementById('gtotal')
 
-    function subTotal(){
-        gt=0;
-        for(i=0;i<iprice.length;i++){
-            itotal[i].innerText=(iprice[i].value)*(iquantity[i].value);
-            gt=gt+(iprice[i].value)*(iquantity[i].value);
-        }
-        gtotal.innerText=gt;
-    }
-    subTotal();
-</script>
 <?php require_once('includes/footer.php'); ?>

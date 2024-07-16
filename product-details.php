@@ -1,12 +1,14 @@
 <?php
 require_once('includes/header.php'); 
-$id = $_REQUEST['id'];
-$_SESSION['request'] = $_REQUEST['id']; //work for submit_rating
-$user_id = $_SESSION['user']['id'];
-$products = GetSingleData2('products',$id); 
-$product2 = GetTableData2('products'); 
+if(isset($_SESSION['user'])){
+    $id = $_REQUEST['id'];
+    $_SESSION['request'] = $_REQUEST['id']; //work for submit_rating
+    $user_id = $_SESSION['user']['id'];
+    $products = GetSingleData2('products',$id); 
+    $product2 = GetTableData2('products'); 
+}
   
-if(!isset($_SESSION['user'])){
+else{
     ?>
     <script>
         setTimeout(function(){
@@ -270,7 +272,7 @@ if(isset($_REQUEST['id'])){
                                                                 <i class="fa-solid fa-star"></i>
                                                             <?php endif; ?>
                                                         </div>
-                                                        <p class="mt-2">Lorem ipsum dolor sit, amet consectetur adipisicing elit. Accusamus numquam assumenda hic aliquam vero sequi velit molestias doloremque molestiae dicta?</p>
+                                                        <p class="mt-2"><?php echo $row['user_review'] ?></p>
                                                         <div class="post-span text-right"><span><?php echo $row['datetime']; ?></span></div>
                                                     </div>
                                                 </div>
@@ -325,14 +327,14 @@ if(isset($_REQUEST['id'])){
     }
 }
 ?>
-
+<div class="container">
     <?php if(isset($error)) : ?>
-        <div class="container">
             <h1 style="padding:100px;" class="alert text-center">
                 <?php echo $error; ?>
             </h1>
         </div>
     <?php endif; ?>
+</div>   
 <?php require_once('includes/footer.php') ?>
 
 <div id="review_modal" class="modal" tabindex="1" role="dialog">
@@ -362,7 +364,3 @@ if(isset($_REQUEST['id'])){
         </div>
     </div>
 </div>
-
-<script>
-
-</script>
